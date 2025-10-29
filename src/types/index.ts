@@ -3,7 +3,9 @@ export interface User {
   id: number;
   name: string;
   email: string;
-  role: 'teacher' | 'admin';
+  role: 'teacher' | 'admin' | 'student';
+  class_name?: string; // For students
+  section?: string; // For students
 }
 
 export interface LoginCredentials {
@@ -16,7 +18,9 @@ export interface SignupCredentials {
   email: string;
   password: string;
   confirm_password: string;
-  role: 'teacher' | 'admin';
+  role: 'teacher' | 'admin' | 'student';
+  class_name?: string; // Required for students
+  section?: string; // Required for students
 }
 
 export interface AuthResponse {

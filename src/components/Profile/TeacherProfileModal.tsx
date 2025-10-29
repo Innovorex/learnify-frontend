@@ -16,6 +16,7 @@ interface TeacherProfileModalProps {
 }
 
 export const TeacherProfileModal: React.FC<TeacherProfileModalProps> = ({ isOpen, onClose }) => {
+  const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
   const { user } = useAuth();
   const [profile, setProfile] = useState<TeacherProfile | null>(null);
   const [loading, setLoading] = useState(true);
@@ -38,7 +39,7 @@ export const TeacherProfileModal: React.FC<TeacherProfileModalProps> = ({ isOpen
     try {
       setLoading(true);
       const token = localStorage.getItem('access_token');
-      const response = await fetch('/api/teacher/profile/me', {
+      const response = await fetch(`${API_URL}/teacher/profile/me`, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
@@ -68,7 +69,7 @@ export const TeacherProfileModal: React.FC<TeacherProfileModalProps> = ({ isOpen
     try {
       setLoading(true);
       const token = localStorage.getItem('access_token');
-      const response = await fetch('/api/teacher/profile/me', {
+      const response = await fetch(`${API_URL}/teacher/profile/me`, {
         method: 'PUT',
         headers: {
           'Authorization': `Bearer ${token}`,

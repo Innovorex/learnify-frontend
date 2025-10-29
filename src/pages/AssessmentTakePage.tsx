@@ -252,6 +252,18 @@ export const AssessmentTakePage: React.FC = () => {
 
                   <p className="text-gray-800 mb-3">{review.question}</p>
 
+                  {/* Show correct answer summary */}
+                  <div className="mb-3 p-2 bg-blue-50 border border-blue-200 rounded-lg">
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="text-gray-700">
+                        <span className="font-medium">Your answer:</span> {review.user_answer}
+                      </span>
+                      <span className="text-gray-700">
+                        <span className="font-medium">Correct answer:</span> <span className="text-green-600 font-bold">{review.correct_answer}</span>
+                      </span>
+                    </div>
+                  </div>
+
                   <div className="space-y-2">
                     {review.options.map((option, optIndex) => {
                       const optionLetter = String.fromCharCode(65 + optIndex);
@@ -263,7 +275,7 @@ export const AssessmentTakePage: React.FC = () => {
                           key={optIndex}
                           className={`p-3 rounded-lg border ${
                             isCorrectAnswer
-                              ? 'bg-green-50 border-green-300 text-green-800'
+                              ? 'bg-green-100 border-green-400 text-green-900'
                               : isUserAnswer && !review.is_correct
                               ? 'bg-red-50 border-red-300 text-red-800'
                               : 'bg-gray-50 border-gray-200'
@@ -273,8 +285,8 @@ export const AssessmentTakePage: React.FC = () => {
                             <span className="font-medium">{optionLetter})</span>
                             <span className="flex-1">{option}</span>
                             {isCorrectAnswer && (
-                              <span className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded">
-                                Correct Answer
+                              <span className="text-xs bg-green-600 text-white px-2 py-1 rounded font-medium">
+                                ✓ Correct Answer
                               </span>
                             )}
                             {isUserAnswer && !isCorrectAnswer && (

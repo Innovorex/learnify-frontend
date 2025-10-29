@@ -48,6 +48,7 @@ interface Submission {
 }
 
 export const AdminCourseManagement: React.FC = () => {
+  const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
   const [activeTab, setActiveTab] = useState<'courses' | 'submissions'>('submissions');
 
   // Courses state
@@ -75,7 +76,7 @@ export const AdminCourseManagement: React.FC = () => {
     try {
       setLoadingCourses(true);
       const token = localStorage.getItem('access_token');
-      const response = await fetch('http://104.251.217.92:8000/courses/catalog', {
+      const response = await fetch(`${API_URL}/courses/catalog`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -97,7 +98,7 @@ export const AdminCourseManagement: React.FC = () => {
       setLoadingSubmissions(true);
       const token = localStorage.getItem('access_token');
       const statusParam = filterStatus === 'all' ? '' : `?status=${filterStatus}`;
-      const response = await fetch(`http://104.251.217.92:8000/submission/admin/all${statusParam}`, {
+      const response = await fetch(`${API_URL}/submission/admin/all${statusParam}`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -119,7 +120,7 @@ export const AdminCourseManagement: React.FC = () => {
     try {
       setReviewing(true);
       const token = localStorage.getItem('access_token');
-      const response = await fetch(`http://104.251.217.92:8000/submission/validate/${submissionId}`, {
+      const response = await fetch(`${API_URL}/submission/validate/${submissionId}`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -150,7 +151,7 @@ export const AdminCourseManagement: React.FC = () => {
   const viewFile = async (submissionId: number) => {
     try {
       const token = localStorage.getItem('access_token');
-      const response = await fetch(`http://104.251.217.92:8000/submission/admin/file/${submissionId}`, {
+      const response = await fetch(`${API_URL}/submission/admin/file/${submissionId}`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }

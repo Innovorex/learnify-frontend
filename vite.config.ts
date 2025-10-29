@@ -17,11 +17,16 @@ export default defineConfig({
   server: {
     host: '0.0.0.0',
     port: 3000,
+    hmr: {
+      host: 'learnifyteach.innovorex.co.in',
+      protocol: 'wss',
+    },
     proxy: {
       '/api': {
-        target: 'http://104.251.217.119:8000',
+        target: 'https://ltbackend.innovorex.co.in',
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/api/, ''),
+        secure: false,
       },
     },
   },

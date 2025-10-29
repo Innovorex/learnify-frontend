@@ -25,6 +25,18 @@ import { AdminCourseManagement } from './pages/AdminCourseManagement';
 import { AdminTeacherAnalytics } from './pages/AdminTeacherAnalytics';
 import { AdminPerformanceAnalytics } from './pages/AdminPerformanceAnalytics';
 
+// K-12 Student Pages
+import { StudentDashboard } from './pages/StudentDashboard';
+import { StudentAssessmentPage } from './pages/StudentAssessmentPage';
+import { StudentResultsPage } from './pages/StudentResultsPage';
+import { StudentAssessmentsPage } from './pages/StudentAssessmentsPage';
+
+// K-12 Teacher Pages
+import { TeacherCreateAssessment } from './pages/TeacherCreateAssessment';
+import { TeacherAssessmentList } from './pages/TeacherAssessmentList';
+import { TeacherQuestionsPage } from './pages/TeacherQuestionsPage';
+import { TeacherResultsPage } from './pages/TeacherResultsPage';
+
 const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { isAuthenticated, loading: authLoading, user } = useAuth();
   const { hasProfile, loading: profileLoading } = useProfile();
@@ -46,9 +58,37 @@ const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) =
     return <Navigate to="/admin/dashboard" replace />;
   }
 
+  // If user is student, redirect to student dashboard
+  if (user?.role === 'student') {
+    return <Navigate to="/student/dashboard" replace />;
+  }
+
   // If user is a teacher and doesn't have a profile, redirect to profile setup
   if (user?.role === 'teacher' && !hasProfile) {
     return <Navigate to="/profile-setup" replace />;
+  }
+
+  return <>{children}</>;
+};
+
+// Student Route
+const StudentRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const { isAuthenticated, loading, user } = useAuth();
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+      </div>
+    );
+  }
+
+  if (!isAuthenticated) {
+    return <Navigate to="/login" replace />;
+  }
+
+  if (user?.role !== 'student') {
+    return <Navigate to="/dashboard" replace />;
   }
 
   return <>{children}</>;
@@ -99,6 +139,9 @@ const PublicRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     if (user?.role === 'admin') {
       return <Navigate to="/admin/dashboard" replace />;
     }
+    if (user?.role === 'student') {
+      return <Navigate to="/student/dashboard" replace />;
+    }
     return <Navigate to="/dashboard" replace />;
   }
 
@@ -140,6 +183,10 @@ const RoleBasedRedirect: React.FC = () => {
 
   if (user?.role === 'admin') {
     return <Navigate to="/admin/dashboard" replace />;
+  }
+
+  if (user?.role === 'student') {
+    return <Navigate to="/student/dashboard" replace />;
   }
 
   return <Navigate to="/dashboard" replace />;
@@ -199,6 +246,26 @@ const AppRoutes: React.FC = () => {
           <Route path="career-progression/module/:moduleId" element={<ModuleContentPage />} />
           <Route path="career-progression/module/:moduleId/exam" element={<ModuleExamPage />} />
           <Route path="ai-tutor" element={<AITutor />} />
+          {/* Teacher K-12 routes */}
+          <Route path="teacher/k12/create" element={<TeacherCreateAssessment />} />
+          <Route path="teacher/k12/assessments" element={<TeacherAssessmentList />} />
+          <Route path="teacher/k12/assessment/:assessmentId/questions" element={<TeacherQuestionsPage />} />
+          <Route path="teacher/k12/results/:assessmentId" element={<TeacherResultsPage />} />
+        </Route>
+
+        {/* Student routes */}
+        <Route
+          path="/student"
+          element={
+            <StudentRoute>
+              <DashboardLayout />
+            </StudentRoute>
+          }
+        >
+          <Route path="dashboard" element={<StudentDashboard />} />
+          <Route path="assessments" element={<StudentAssessmentsPage />} />
+          <Route path="assessment/:id" element={<StudentAssessmentPage />} />
+          <Route path="results" element={<StudentResultsPage />} />
         </Route>
 
         {/* Admin routes */}

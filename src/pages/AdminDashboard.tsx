@@ -76,6 +76,7 @@ export const AdminDashboard: React.FC = () => {
   const [dashboardData, setDashboardData] = useState<AdminDashboardData | null>(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 
   useEffect(() => {
     loadDashboardData();
@@ -86,7 +87,7 @@ export const AdminDashboard: React.FC = () => {
       setLoading(true);
       const token = localStorage.getItem('access_token');
 
-      const response = await fetch('/api/admin/dashboard/metrics', {
+      const response = await fetch(`${API_URL}/admin/dashboard/metrics`, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
@@ -95,19 +96,19 @@ export const AdminDashboard: React.FC = () => {
 
       // Fetch additional data for comprehensive dashboard
       const [statsResponse, teachersResponse, coursesResponse] = await Promise.all([
-        fetch('/api/admin/stats', {
+        fetch(`${API_URL}/admin/stats`, {
           headers: {
             'Authorization': `Bearer ${token}`,
             'Content-Type': 'application/json'
           }
         }),
-        fetch('/api/admin/teachers', {
+        fetch(`${API_URL}/admin/teachers`, {
           headers: {
             'Authorization': `Bearer ${token}`,
             'Content-Type': 'application/json'
           }
         }),
-        fetch('/api/admin/courses/analytics', {
+        fetch(`${API_URL}/admin/courses/analytics`, {
           headers: {
             'Authorization': `Bearer ${token}`,
             'Content-Type': 'application/json'

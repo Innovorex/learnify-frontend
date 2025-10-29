@@ -20,6 +20,7 @@ interface CourseRecommendation {
 }
 
 export const CourseRecommendationsSidebar: React.FC = () => {
+  const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
   const [recommendations, setRecommendations] = useState<CourseRecommendation[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
@@ -37,7 +38,7 @@ export const CourseRecommendationsSidebar: React.FC = () => {
       setError(null);
 
       const token = localStorage.getItem('access_token');
-      const response = await fetch('/api/courses/recommendations', {
+      const response = await fetch(`${API_URL}/courses/recommendations`, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
@@ -66,7 +67,7 @@ export const CourseRecommendationsSidebar: React.FC = () => {
       setError(null);
 
       const token = localStorage.getItem('access_token');
-      const response = await fetch('/api/courses/recommendations/generate', {
+      const response = await fetch(`${API_URL}/courses/recommendations/generate`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -92,7 +93,7 @@ export const CourseRecommendationsSidebar: React.FC = () => {
   const handleEnroll = async (courseId: number) => {
     try {
       const token = localStorage.getItem('access_token');
-      const response = await fetch(`/api/courses/recommendations/${courseId}/enroll`, {
+      const response = await fetch(`${API_URL}/courses/recommendations/${courseId}/enroll`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -116,7 +117,7 @@ export const CourseRecommendationsSidebar: React.FC = () => {
   const handleDismiss = async (courseId: number) => {
     try {
       const token = localStorage.getItem('access_token');
-      const response = await fetch(`/api/courses/recommendations/${courseId}/dismiss`, {
+      const response = await fetch(`${API_URL}/courses/recommendations/${courseId}/dismiss`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,

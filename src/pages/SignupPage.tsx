@@ -42,6 +42,16 @@ export const SignupPage: React.FC = () => {
       newErrors.email = 'Email is invalid';
     }
 
+    // Validate student-specific fields
+    if (credentials.role === 'student') {
+      if (!credentials.class_name) {
+        newErrors.class_name = 'Class is required for students';
+      }
+      if (!credentials.section) {
+        newErrors.section = 'Section is required for students';
+      }
+    }
+
     if (!credentials.password) {
       newErrors.password = 'Password is required';
     } else if (credentials.password.length < 6) {
@@ -129,9 +139,46 @@ export const SignupPage: React.FC = () => {
                   className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
                 >
                   <option value="teacher">Teacher</option>
+                  <option value="student">Student</option>
                   <option value="admin">Administrator</option>
                 </select>
               </div>
+
+              {/* Student-specific fields */}
+              {credentials.role === 'student' && (
+                <>
+                  <div className="space-y-1">
+                    <label htmlFor="class_name" className="block text-sm font-medium text-gray-700">
+                      Class
+                    </label>
+                    <select
+                      id="class_name"
+                      name="class_name"
+                      value={credentials.class_name || ''}
+                      onChange={handleInputChange}
+                      className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                      required
+                    >
+                      <option value="">Select Class</option>
+                      {[6, 7, 8, 9, 10, 11, 12].map((cls) => (
+                        <option key={cls} value={cls.toString()}>
+                          Class {cls}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <Input
+                    label="Section"
+                    type="text"
+                    name="section"
+                    value={credentials.section || ''}
+                    onChange={handleInputChange}
+                    placeholder="Enter your section (e.g., A, B, C)"
+                    required
+                  />
+                </>
+              )}
 
               <Input
                 label="Password"

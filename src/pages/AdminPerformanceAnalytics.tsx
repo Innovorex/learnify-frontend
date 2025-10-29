@@ -55,6 +55,7 @@ interface PerformanceData {
 }
 
 export const AdminPerformanceAnalytics: React.FC = () => {
+  const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
   const [data, setData] = useState<PerformanceData | null>(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -67,7 +68,7 @@ export const AdminPerformanceAnalytics: React.FC = () => {
     try {
       setLoading(true);
       const token = localStorage.getItem('access_token');
-      const response = await fetch('http://104.251.217.92:8000/admin/reports/performance', {
+      const response = await fetch(`${API_URL}/admin/reports/performance`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }

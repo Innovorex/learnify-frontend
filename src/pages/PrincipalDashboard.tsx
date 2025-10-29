@@ -81,6 +81,7 @@ export const PrincipalDashboard: React.FC = () => {
   const [data, setData] = useState<PrincipalInsights | null>(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 
   useEffect(() => {
     loadDashboard();
@@ -90,7 +91,7 @@ export const PrincipalDashboard: React.FC = () => {
     try {
       setLoading(true);
       const token = localStorage.getItem('access_token');
-      const response = await fetch('http://104.251.217.92:8000/admin/dashboard/principal-insights', {
+      const response = await fetch(`${API_URL}/admin/dashboard/principal-insights`, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'

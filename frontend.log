@@ -3,11 +3,12 @@
 > vite
 
 Port 3000 is in use, trying another one...
-Port 3001 is in use, trying another one...
 
-  VITE v5.4.20  ready iKilled
-s
+  VITE v5.4.20  ready in 284 ms
 
-  ➜  Local:   http://localhost:Killed
- ➜  Network: use --host to expose
-Killed
+  ➜  Local:   http://localhost:3001/
+  ➜  Network: http://104.251.217.119:3001/
+5:09:18 AM [vite] .env changed, restarting server...
+5:09:19 AM [vite] server restarted.
+5:19:32 AM [vite] vite.config.ts changed, restarting server...
+5:19:32 AM [vite] server restarted.

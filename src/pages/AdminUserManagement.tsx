@@ -20,6 +20,7 @@ export const AdminUserManagement: React.FC = () => {
   const [roleFilter, setRoleFilter] = useState<'all' | 'teacher' | 'admin'>('all');
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [newTeacher, setNewTeacher] = useState({ name: '', email: '', password: '' });
+  const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 
   useEffect(() => {
     loadUsers();
@@ -29,7 +30,7 @@ export const AdminUserManagement: React.FC = () => {
     try {
       setLoading(true);
       const token = localStorage.getItem('token');
-      const response = await fetch('http://104.251.271.92:8000/admin/teachers', {
+      const response = await fetch(`${API_URL}/admin/teachers`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -72,7 +73,7 @@ export const AdminUserManagement: React.FC = () => {
     e.preventDefault();
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch('http://104.251.271.92:8000/admin/teachers/create', {
+      const response = await fetch(`${API_URL}/admin/teachers/create`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,

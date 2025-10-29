@@ -44,6 +44,7 @@ interface Teacher {
 type PerformanceFilter = 'all' | 'excellent' | 'good' | 'needs_support' | 'critical';
 
 export const AdminTeacherAnalytics: React.FC = () => {
+  const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
   const [teachers, setTeachers] = useState<Teacher[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -59,7 +60,7 @@ export const AdminTeacherAnalytics: React.FC = () => {
       setLoading(true);
       const token = localStorage.getItem('access_token');
 
-      const response = await fetch('http://104.251.217.92:8000/admin/teachers', {
+      const response = await fetch(`${API_URL}/admin/teachers`, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
