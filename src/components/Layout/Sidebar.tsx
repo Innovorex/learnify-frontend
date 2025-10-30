@@ -12,7 +12,8 @@ import {
   ClipboardList,
   FileText,
   ChevronDown,
-  ChevronRight
+  ChevronRight,
+  Upload
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { TeacherProfileModal } from '../Profile/TeacherProfileModal';
@@ -64,6 +65,11 @@ const teacherNavigation = [
     name: 'AI Tutor',
     href: '/ai-tutor',
     icon: Sparkles,
+  },
+  {
+    name: 'Materials',
+    href: '/materials',
+    icon: Upload,
   },
   {
     name: 'Student Assessments',

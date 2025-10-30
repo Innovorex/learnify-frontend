@@ -1,9 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { aiTutorService } from '../services/aiTutor';
-import { materialService } from '../services/materialService';
 import type { Message, PedagogySource, SessionHistory } from '../types/aiTutor';
-import type { TeachingMaterial } from '../types/materials';
-import { Sparkles, Send, BookOpen, GraduationCap, Loader2, Plus, History, X, ChevronDown, ChevronUp, FileText } from 'lucide-react';
+import { Sparkles, Send, BookOpen, GraduationCap, Loader2, Plus, History, X, ChevronDown, ChevronUp } from 'lucide-react';
 
 const AITutor: React.FC = () => {
   const [sessionId, setSessionId] = useState<number | null>(null);
@@ -22,12 +20,6 @@ const AITutor: React.FC = () => {
   const [state, setState] = useState('Telangana');
   const [board, setBoard] = useState('State Board');
 
-  // Material selection
-  const [useUploadedMaterial, setUseUploadedMaterial] = useState(false);
-  const [selectedMaterialId, setSelectedMaterialId] = useState<number | null>(null);
-  const [availableMaterials, setAvailableMaterials] = useState<TeachingMaterial[]>([]);
-  const [loadingMaterials, setLoadingMaterials] = useState(false);
-
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const scrollToBottom = () => {
@@ -42,12 +34,6 @@ const AITutor: React.FC = () => {
     loadSessionHistory();
   }, []);
 
-  useEffect(() => {
-    if (useUploadedMaterial) {
-      loadAvailableMaterials();
-    }
-  }, [useUploadedMaterial]);
-
   const loadSessionHistory = async () => {
     try {
       const history = await aiTutorService.getSessions();
@@ -57,46 +43,18 @@ const AITutor: React.FC = () => {
     }
   };
 
-  const loadAvailableMaterials = async () => {
-    try {
-      setLoadingMaterials(true);
-      const response = await materialService.listMaterials({
-        status: 'completed',
-        page: 1,
-        page_size: 100,
-      });
-      setAvailableMaterials(response.materials);
-    } catch (error) {
-      console.error('Failed to load materials:', error);
-    } finally {
-      setLoadingMaterials(false);
-    }
-  };
-
   const handleStartSession = async (e: React.FormEvent) => {
     e.preventDefault();
-
-    // Topic name is only required when NOT using uploaded material
-    if (!useUploadedMaterial && !topicName.trim()) {
-      alert('Please enter a topic name');
-      return;
-    }
-
-    if (useUploadedMaterial && !selectedMaterialId) {
-      alert('Please select a material to use');
-      return;
-    }
+    if (!topicName.trim()) return;
 
     setIsLoading(true);
     try {
       const response = await aiTutorService.startSession({
-        topic_name: topicName || '',  // Send empty string if no topic (backend will use material title)
+        topic_name: topicName,
         subject,
         grade,
         state,
         board,
-        use_uploaded_material: useUploadedMaterial,
-        material_id: useUploadedMaterial ? selectedMaterialId! : undefined,
       });
 
       setSessionId(response.session_id);
@@ -188,8 +146,6 @@ const AITutor: React.FC = () => {
     setMessages([]);
     setPedagogySources([]);
     setTopicName('');
-    setUseUploadedMaterial(false);
-    setSelectedMaterialId(null);
   };
 
   return (
@@ -258,17 +214,14 @@ const AITutor: React.FC = () => {
                 </div>
                 <form onSubmit={handleStartSession} className="space-y-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Topic Name {!useUploadedMaterial && <span className="text-red-500">*</span>}
-                      {useUploadedMaterial && <span className="text-gray-500 text-xs">(optional)</span>}
-                    </label>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Topic Name *</label>
                     <input
                       type="text"
                       value={topicName}
                       onChange={(e) => setTopicName(e.target.value)}
-                      placeholder={useUploadedMaterial ? "Optional - or leave blank to use material title" : "e.g., Quadratic Equations, Photosynthesis"}
+                      placeholder="e.g., Quadratic Equations, Photosynthesis"
                       className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                      required={!useUploadedMaterial}
+                      required
                     />
                   </div>
 
@@ -302,61 +255,9 @@ const AITutor: React.FC = () => {
                     </div>
                   </div>
 
-                  {/* Material Selection */}
-                  <div className="border-t pt-4">
-                    <div className="flex items-center mb-3">
-                      <input
-                        type="checkbox"
-                        id="use-material"
-                        checked={useUploadedMaterial}
-                        onChange={(e) => setUseUploadedMaterial(e.target.checked)}
-                        className="w-4 h-4 text-purple-600 border-gray-300 rounded focus:ring-purple-500"
-                      />
-                      <label htmlFor="use-material" className="ml-2 text-sm font-medium text-gray-700">
-                        Use my uploaded material
-                      </label>
-                      <FileText className="w-4 h-4 ml-2 text-purple-600" />
-                    </div>
-
-                    {useUploadedMaterial && (
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                          Select Material *
-                        </label>
-                        {loadingMaterials ? (
-                          <div className="flex items-center justify-center py-4">
-                            <Loader2 className="w-5 h-5 animate-spin text-purple-600" />
-                            <span className="ml-2 text-gray-600">Loading materials...</span>
-                          </div>
-                        ) : availableMaterials.length === 0 ? (
-                          <div className="text-center py-4 px-4 bg-gray-50 rounded-lg">
-                            <p className="text-sm text-gray-600">No materials available</p>
-                            <p className="text-xs text-gray-500 mt-1">
-                              Upload materials from the Materials page first
-                            </p>
-                          </div>
-                        ) : (
-                          <select
-                            value={selectedMaterialId || ''}
-                            onChange={(e) => setSelectedMaterialId(Number(e.target.value))}
-                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                            required={useUploadedMaterial}
-                          >
-                            <option value="">Select a material...</option>
-                            {availableMaterials.map((material) => (
-                              <option key={material.id} value={material.id}>
-                                {material.title} ({material.subject} - Grade {material.grade_level})
-                              </option>
-                            ))}
-                          </select>
-                        )}
-                      </div>
-                    )}
-                  </div>
-
                   <button
                     type="submit"
-                    disabled={isLoading || (useUploadedMaterial && !selectedMaterialId)}
+                    disabled={isLoading}
                     className="w-full px-6 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 font-medium transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                   >
                     {isLoading ? (

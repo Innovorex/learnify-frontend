@@ -12,3 +12,12 @@ Port 3000 is in use, trying another one...
 5:09:19 AM [vite] server restarted.
 5:19:32 AM [vite] vite.config.ts changed, restarting server...
 5:19:32 AM [vite] server restarted.
+6:57:49 AM [vite] page reload src/types/aiTutor.ts
+6:59:39 AM [vite] hmr update /src/pages/AITutor.tsx, /src/index.css
+7:00:04 AM [vite] hmr update /src/App.tsx, /src/index.css
+7:00:14 AM [vite] hmr update /src/App.tsx, /src/index.css
+7:00:35 AM [vite] hmr update /src/components/Layout/Sidebar.tsx, /src/index.css
+7:00:44 AM [vite] hmr update /src/components/Layout/Sidebar.tsx, /src/index.css
+7:11:57 AM [vite] hmr update /src/pages/AITutor.tsx, /src/index.css
+7:12:11 AM [vite] hmr update /src/pages/AITutor.tsx, /src/index.css
+7:13:29 AM [vite] hmr update /src/pages/AITutor.tsx, /src/index.css

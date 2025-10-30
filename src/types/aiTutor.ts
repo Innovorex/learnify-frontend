@@ -13,6 +13,8 @@ export interface StartSessionRequest {
   grade: string;
   state?: string;
   board?: string;
+  use_uploaded_material?: boolean;
+  material_id?: number;
 }
 
 export interface StartSessionResponse {

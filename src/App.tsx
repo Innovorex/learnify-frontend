@@ -19,6 +19,7 @@ import { CareerProgressionPage } from './pages/CareerProgressionPage';
 import { ModuleContentPage } from './pages/ModuleContentPage';
 import { ModuleExamPage } from './pages/ModuleExamPage';
 import AITutor from './pages/AITutor';
+import { Materials } from './pages/Materials';
 import { AdminLayout } from './components/Layout/AdminLayout';
 import { PrincipalDashboard } from './pages/PrincipalDashboard';
 import { AdminCourseManagement } from './pages/AdminCourseManagement';
@@ -246,6 +247,7 @@ const AppRoutes: React.FC = () => {
           <Route path="career-progression/module/:moduleId" element={<ModuleContentPage />} />
           <Route path="career-progression/module/:moduleId/exam" element={<ModuleExamPage />} />
           <Route path="ai-tutor" element={<AITutor />} />
+          <Route path="materials" element={<Materials />} />
           {/* Teacher K-12 routes */}
           <Route path="teacher/k12/create" element={<TeacherCreateAssessment />} />
           <Route path="teacher/k12/assessments" element={<TeacherAssessmentList />} />
