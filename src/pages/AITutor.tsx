@@ -1,26 +1,25 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { aiTutorService } from '../services/aiTutor';
 import { materialService } from '../services/materialService';
-import type { Message, PedagogySource, SessionHistory } from '../types/aiTutor';
+import apiService from '../services/api';
+import type { Message, SessionHistory } from '../types/aiTutor';
 import type { TeachingMaterial } from '../types/materials';
-import { Sparkles, Send, BookOpen, GraduationCap, Loader2, Plus, History, X, ChevronDown, ChevronUp, FileText } from 'lucide-react';
+import { Sparkles, Send, GraduationCap, Loader2, Plus, History, X, FileText } from 'lucide-react';
 
 const AITutor: React.FC = () => {
   const [sessionId, setSessionId] = useState<number | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputMessage, setInputMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [pedagogySources, setPedagogySources] = useState<PedagogySource[]>([]);
   const [showNewSessionForm, setShowNewSessionForm] = useState(false);
   const [showHistory, setShowHistory] = useState(false);
   const [sessionHistory, setSessionHistory] = useState<SessionHistory[]>([]);
-  const [showSources, setShowSources] = useState(true);
 
   const [topicName, setTopicName] = useState('');
   const [subject, setSubject] = useState('Mathematics');
   const [grade, setGrade] = useState('10');
   const [state, setState] = useState('Telangana');
-  const [board, setBoard] = useState('State Board');
+  const [board, setBoard] = useState('CBSE'); // Will be loaded from teacher profile
 
   // Material selection
   const [useUploadedMaterial, setUseUploadedMaterial] = useState(false);
@@ -40,6 +39,7 @@ const AITutor: React.FC = () => {
 
   useEffect(() => {
     loadSessionHistory();
+    loadTeacherProfile();
   }, []);
 
   useEffect(() => {
@@ -47,6 +47,27 @@ const AITutor: React.FC = () => {
       loadAvailableMaterials();
     }
   }, [useUploadedMaterial]);
+
+  const loadTeacherProfile = async () => {
+    try {
+      const profile = await apiService.getTeacherProfile();
+      if (profile.board) {
+        setBoard(profile.board);
+      }
+      if (profile.state) {
+        setState(profile.state);
+      }
+      if (profile.subjects_teaching && profile.subjects_teaching.length > 0) {
+        setSubject(profile.subjects_teaching[0]); // Set first subject as default
+      }
+      if (profile.grades_teaching && profile.grades_teaching.length > 0) {
+        setGrade(profile.grades_teaching[0]); // Set first grade as default
+      }
+    } catch (error) {
+      console.error('Failed to load teacher profile:', error);
+      // Keep defaults if profile load fails
+    }
+  };
 
   const loadSessionHistory = async () => {
     try {
@@ -108,7 +129,6 @@ const AITutor: React.FC = () => {
           model: response.model_used,
         },
       ]);
-      setPedagogySources(response.pedagogy_sources);
       setShowNewSessionForm(false);
       loadSessionHistory();
     } catch (error: any) {
@@ -146,10 +166,6 @@ const AITutor: React.FC = () => {
       };
 
       setMessages((prev) => [...prev, assistantMessage]);
-
-      if (response.additional_sources.length > 0) {
-        setPedagogySources((prev) => [...prev, ...response.additional_sources]);
-      }
     } catch (error: any) {
       alert(error.response?.data?.detail || 'Failed to send message');
     } finally {
@@ -164,17 +180,6 @@ const AITutor: React.FC = () => {
       setSessionId(session.session_id);
       setMessages(response.messages);
       setShowHistory(false);
-
-      const sources: PedagogySource[] = [];
-      response.messages.forEach((msg) => {
-        if (msg.metadata?.pedagogy_sources) {
-          sources.push(...msg.metadata.pedagogy_sources);
-        }
-        if (msg.metadata?.additional_sources) {
-          sources.push(...msg.metadata.additional_sources);
-        }
-      });
-      setPedagogySources(sources);
     } catch (error: any) {
       alert(error.response?.data?.detail || 'Failed to load session');
     } finally {
@@ -186,7 +191,6 @@ const AITutor: React.FC = () => {
     setShowNewSessionForm(true);
     setSessionId(null);
     setMessages([]);
-    setPedagogySources([]);
     setTopicName('');
     setUseUploadedMaterial(false);
     setSelectedMaterialId(null);
@@ -428,37 +432,6 @@ const AITutor: React.FC = () => {
           )}
         </div>
 
-        {pedagogySources.length > 0 && (
-          <div className="w-80 bg-white border-l border-gray-200 overflow-y-auto">
-            <div className="p-4 border-b bg-gradient-to-r from-purple-50 to-indigo-50">
-              <button onClick={() => setShowSources(!showSources)} className="w-full flex items-center justify-between text-left">
-                <div className="flex items-center gap-2">
-                  <BookOpen className="w-5 h-5 text-purple-600" />
-                  <h3 className="font-bold text-gray-800">Pedagogy Sources</h3>
-                </div>
-                {showSources ? <ChevronUp className="w-5 h-5 text-gray-600" /> : <ChevronDown className="w-5 h-5 text-gray-600" />}
-              </button>
-              <p className="text-xs text-gray-600 mt-1">IGNOU B.Ed references</p>
-            </div>
-
-            {showSources && (
-              <div className="p-4 space-y-3">
-                {pedagogySources.map((source, index) => (
-                  <div key={index} className="p-3 bg-purple-50 rounded-lg border border-purple-100">
-                    <div className="flex items-start justify-between mb-2">
-                      <span className="text-sm font-semibold text-purple-700">{source.module}</span>
-                      <span className="text-xs font-medium text-purple-600 bg-purple-200 px-2 py-1 rounded">
-                        {(source.relevance * 100).toFixed(1)}%
-                      </span>
-                    </div>
-                    <p className="text-xs text-gray-600 mb-1">{source.subject}</p>
-                    <p className="text-xs text-gray-500 truncate">{source.file_name}</p>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-        )}
 
         {showHistory && (
           <div className="w-80 bg-white border-l border-gray-200 overflow-y-auto">

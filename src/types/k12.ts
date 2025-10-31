@@ -80,6 +80,12 @@ export interface CreateAssessmentRequest {
   start_time: string;
   end_time: string;
   duration_minutes: number;
+
+  // Material-based question generation
+  use_material?: boolean;
+  material_id?: number;
+  from_page?: number;
+  to_page?: number;
 }
 
 export interface SubmitExamRequest {

@@ -1,10 +1,12 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { toast } from 'sonner';
-import { Calendar, Clock, BookOpen, Sparkles, ArrowLeft } from 'lucide-react';
+import { Calendar, Clock, BookOpen, Sparkles, ArrowLeft, FileText } from 'lucide-react';
 import k12Api from '../services/k12Api';
+import { materialService } from '../services/materialService';
 import type { CreateAssessmentRequest } from '../types/k12';
+import type { TeachingMaterial } from '../types/materials';
 
 export const TeacherCreateAssessment: React.FC = () => {
   const { user } = useAuth();
@@ -21,6 +23,14 @@ export const TeacherCreateAssessment: React.FC = () => {
     duration_minutes: 60,
   });
 
+  // Material-based question generation
+  const [useUploadedMaterial, setUseUploadedMaterial] = useState(false);
+  const [selectedMaterialId, setSelectedMaterialId] = useState<number | null>(null);
+  const [fromPage, setFromPage] = useState<number>(1);
+  const [toPage, setToPage] = useState<number>(10);
+  const [availableMaterials, setAvailableMaterials] = useState<TeachingMaterial[]>([]);
+  const [loadingMaterials, setLoadingMaterials] = useState(false);
+
   const subjects = [
     'Mathematics',
     'Science',
@@ -34,6 +44,30 @@ export const TeacherCreateAssessment: React.FC = () => {
   ];
 
   const classes = ['6', '7', '8', '9', '10', '11', '12'];
+
+  // Load materials when checkbox is checked
+  useEffect(() => {
+    if (useUploadedMaterial) {
+      loadAvailableMaterials();
+    }
+  }, [useUploadedMaterial]);
+
+  const loadAvailableMaterials = async () => {
+    try {
+      setLoadingMaterials(true);
+      const response = await materialService.listMaterials({
+        status: 'completed',
+        page: 1,
+        page_size: 100,
+      });
+      setAvailableMaterials(response.materials);
+    } catch (error) {
+      console.error('Failed to load materials:', error);
+      toast.error('Failed to load materials');
+    } finally {
+      setLoadingMaterials(false);
+    }
+  };
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
@@ -52,9 +86,31 @@ export const TeacherCreateAssessment: React.FC = () => {
     e.preventDefault();
 
     // Validation
-    if (!formData.chapter.trim()) {
-      toast.error('Please enter a chapter name');
-      return;
+    if (useUploadedMaterial) {
+      if (!selectedMaterialId) {
+        toast.error('Please select a material');
+        return;
+      }
+      // Optional validation: only check if user provided values
+      if (fromPage && toPage) {
+        if (fromPage < 1) {
+          toast.error('From page must be at least 1');
+          return;
+        }
+        if (toPage < fromPage) {
+          toast.error('To page must be greater than or equal to From page');
+          return;
+        }
+        if (toPage - fromPage > 50) {
+          toast.error('Page range cannot exceed 50 pages');
+          return;
+        }
+      }
+    } else {
+      if (!formData.chapter.trim()) {
+        toast.error('Please enter a chapter name');
+        return;
+      }
     }
 
     if (!formData.start_time || !formData.end_time) {
@@ -78,7 +134,13 @@ export const TeacherCreateAssessment: React.FC = () => {
     try {
       setCreating(true);
 
-      const response = await k12Api.createAssessment(formData);
+      await k12Api.createAssessment({
+        ...formData,
+        use_material: useUploadedMaterial,
+        material_id: useUploadedMaterial ? selectedMaterialId! : undefined,
+        from_page: useUploadedMaterial ? (fromPage || 1) : undefined,
+        to_page: useUploadedMaterial ? (toPage || 10) : undefined,
+      });
 
       toast.success(
         'Assessment created successfully! AI is generating questions...'
@@ -204,20 +266,117 @@ export const TeacherCreateAssessment: React.FC = () => {
             {/* Chapter */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Chapter / Topic <span className="text-red-500">*</span>
+                Chapter / Topic {!useUploadedMaterial && <span className="text-red-500">*</span>}
               </label>
               <input
                 type="text"
                 name="chapter"
                 value={formData.chapter}
                 onChange={handleChange}
-                required
-                placeholder="e.g., Real Numbers, Acids and Bases, Poem - The Road Not Taken"
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                required={!useUploadedMaterial}
+                disabled={useUploadedMaterial}
+                placeholder={useUploadedMaterial ? "Will use material content" : "e.g., Real Numbers, Acids and Bases"}
+                className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                  useUploadedMaterial ? 'bg-gray-100 text-gray-500 cursor-not-allowed' : 'border-gray-300'
+                }`}
               />
-              <p className="text-xs text-gray-500 mt-1">
-                AI will use CBSE syllabus content for this chapter
-              </p>
+              {!useUploadedMaterial && (
+                <p className="text-xs text-gray-500 mt-1">
+                  AI will use CBSE syllabus content for this chapter
+                </p>
+              )}
+            </div>
+
+            {/* Material Selection Section */}
+            <div className="border-t border-gray-200 pt-6">
+              <div className="flex items-center mb-4">
+                <input
+                  type="checkbox"
+                  id="use_material"
+                  checked={useUploadedMaterial}
+                  onChange={(e) => {
+                    setUseUploadedMaterial(e.target.checked);
+                    if (!e.target.checked) {
+                      setSelectedMaterialId(null);
+                    }
+                  }}
+                  className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                />
+                <label htmlFor="use_material" className="ml-2 text-sm font-medium text-gray-700 flex items-center gap-2">
+                  <FileText className="w-4 h-4" />
+                  Use my uploaded material for question generation
+                </label>
+              </div>
+
+              {useUploadedMaterial && (
+                <div className="ml-6 space-y-4 bg-blue-50 p-4 rounded-lg border border-blue-200">
+                  {/* Material Dropdown */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Select Material <span className="text-red-500">*</span>
+                    </label>
+                    {loadingMaterials ? (
+                      <div className="text-sm text-gray-500">Loading materials...</div>
+                    ) : availableMaterials.length === 0 ? (
+                      <div className="text-sm text-gray-500">
+                        No materials available. Please upload materials first.
+                      </div>
+                    ) : (
+                      <select
+                        value={selectedMaterialId || ''}
+                        onChange={(e) => setSelectedMaterialId(Number(e.target.value))}
+                        required={useUploadedMaterial}
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      >
+                        <option value="">-- Select a material --</option>
+                        {availableMaterials.map((material) => (
+                          <option key={material.id} value={material.id}>
+                            {material.title} ({material.original_filename})
+                          </option>
+                        ))}
+                      </select>
+                    )}
+                  </div>
+
+                  {/* Page Range */}
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        From Page <span className="text-gray-400 text-xs">(optional)</span>
+                      </label>
+                      <input
+                        type="number"
+                        value={fromPage}
+                        onChange={(e) => setFromPage(Number(e.target.value))}
+                        min="1"
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        placeholder="1 (default)"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        To Page <span className="text-gray-400 text-xs">(optional)</span>
+                      </label>
+                      <input
+                        type="number"
+                        value={toPage}
+                        onChange={(e) => setToPage(Number(e.target.value))}
+                        min={fromPage}
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        placeholder="10 (default)"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="text-xs text-gray-600 bg-white p-3 rounded border border-blue-200">
+                    📘 Questions will be generated from pages {fromPage} to {toPage} of the selected material
+                    {toPage - fromPage > 50 && (
+                      <span className="text-red-600 block mt-1">⚠️ Page range exceeds 50 pages limit</span>
+                    )}
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* Date and Time */}
